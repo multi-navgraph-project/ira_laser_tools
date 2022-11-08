@@ -3,7 +3,7 @@
         	<param name="destination_frame" value="base_link"/>
 		<param name="cloud_destination_topic" value="/merged_cloud"/>
 		<param name="scan_destination_topic" value="/scan_multi"/>
-                <param name="laserscan_topics" value ="/sick_safetyscanners_1/scan /sick_safetyscanners_2/scan /sick_safetyscanners_3/scan" /> <!-- LIST OF THE LASER SCAN TOPICS TO SUBSCRIBE -->
+                <param name="laserscan_topics" value ="/sick_safetyscanners_1/scan /sick_safetyscanners_2/scan" /> <!-- LIST OF THE LASER SCAN TOPICS TO SUBSCRIBE -->
 
                 <param name="angle_min" value="-3.14"/>
                 <param name="angle_max" value="3.14"/>
@@ -13,7 +13,8 @@
                 <param name="range_max" value="40"/>
 	</node>
 
- <node pkg="tf" type="static_transform_publisher" name="base_link_broadcast" args="0 0 -0.062 0 0 0 base_link base_laser 30" /> 
+ <node pkg="tf" type="static_transform_publisher" name="base_link_broadcast" args="0 0 0.19 0 0 0 base_link base_laser 30" />
+
  
  
 
