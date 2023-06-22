@@ -155,7 +155,7 @@ void LaserscanMerger::scanCallback(const sensor_msgs::LaserScan::ConstPtr &scan,
 	{
 		// Verify that TF knows how to transform from the received scan to the destination scan frame
 		tfListener_.waitForTransform(scan->header.frame_id.c_str(), destination_frame.c_str(), scan->header.stamp, ros::Duration(1));
-		projector_.transformLaserScanToPointCloud(scan->header.frame_id, *scan, tmpCloud1, tfListener_, laser_geometry::channel_option::Distance);
+		projector_.transformLaserScanToPointCloud(scan->header.frame_id, *scan, tmpCloud1, tfListener_, (laser_geometry::channel_option::Distance | laser_geometry::channel_option::Intensity | laser_geometry::channel_option::Index));
 		tfListener_.transformPointCloud(destination_frame.c_str(), tmpCloud1, tmpCloud2);
 	}
 	catch (tf::TransformException ex)
@@ -219,6 +219,16 @@ void LaserscanMerger::pointcloud_to_laserscan(Eigen::MatrixXf points, pcl::PCLPo
 	uint32_t ranges_size = std::ceil((output->angle_max - output->angle_min) / output->angle_increment);
 	output->ranges.assign(ranges_size, output->range_max + 1.0);
 
+	int intensities_idx = getFieldIndex(*merged_cloud, "intensities");
+    int intensities_offset;
+    float intensitis;
+    if (intensities_idx != -1)
+    {
+        //intensities present
+        output->intensities.assign(ranges_size, 0.0);
+        intensities_offset = merged_cloud->fields[intensities_idx].offset;
+    }
+
 	for (int i = 0; i < points.cols(); i++)
 	{
 		const float &x = points(0, i);
@@ -247,8 +257,21 @@ void LaserscanMerger::pointcloud_to_laserscan(Eigen::MatrixXf points, pcl::PCLPo
 		}
 		int index = (angle - output->angle_min) / output->angle_increment;
 
-		if (output->ranges[index] * output->ranges[index] > range_sq)
+		if (output->ranges[index] * output->ranges[index] > range_sq){
 			output->ranges[index] = sqrt(range_sq);
+			if (intensities_idx != -1)
+            {
+                //intensities present
+                output->intensities[index] = intensitis;
+            }
+
+		}
+		if (intensities_idx != -1)
+        {
+            //intensities present
+            memcpy (&intensitis, &merged_cloud->data[intensities_offset], sizeof (float));
+            intensities_offset += merged_cloud->point_step;
+        }
 	}
 
 	laser_scan_publisher_.publish(output);
